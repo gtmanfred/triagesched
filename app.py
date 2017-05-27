@@ -6,6 +6,7 @@ conn = connect('users.db')
 cols = ('userid', 'name', 'ord', 'triage', 'enabled')
 
 app = Flask(__name__)
+app.config['DEBUG'] = True
 api = Api(app)
 
 
@@ -74,7 +75,6 @@ class Triage(Resource):
     def get(self):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE triage=1')
-        print('HERE')
         ret = jsonify({'triage': assemble(cursor.fetchone())['name']})
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
