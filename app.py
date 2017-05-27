@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, url_for
+from flask import Flask, jsonify, request, url_for, Response
 from flask_restful import Resource, Api
 from sqlite3 import connect
 
@@ -33,7 +33,9 @@ class User(Resource):
         userid = user.pop('userid')
         for key, value in user.items():
             cursor.execute(f'UPDATE users SET {key}="{value}" where userid="{userid}";')
-        return assemble(cursor.execute(f'SELECT * FROM users WHERE userid="{userid}";').fetchone())
+        ret = jsonify(assemble(cursor.execute(f'SELECT * FROM users WHERE userid="{userid}";').fetchone()))
+        ret.headers['Access-Control-Allow-Origin'] = '*'
+        return ret
         
 
     def delete(self, userid):
@@ -48,6 +50,13 @@ class User(Resource):
         if user:
             return {'Error': 'Failed to delete: {userid}'}, 500
         return jsonify({'message': 'success'})
+
+    def options(self, userid):
+        ret = Response("")
+        ret.headers['Access-Control-Allow-Origin'] = '*'
+        ret.headers['Access-Control-Allow-Methods'] = 'PUT, GET, OPTIONS, DELETE'
+        ret.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return ret
 
 
 class Users(Resource):

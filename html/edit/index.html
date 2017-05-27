@@ -1,27 +1,43 @@
-
+<!DOCTYPE HTML PUBLIC>
 <html>
   <head>
     <title>Who is doing triage today?</title>
-    <script src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
-<script>
-window.onload = function() {
-  $.ajax({
-    url: 'http://localhost:5000/users',
-    async: true,
-    dataType: 'json',
-    success: function (json) {
-      var table = "<table>"
-      for(user in json.users) {
-        table += "<tr><td>" + json.users[user].name + "</td><td>" + json.users[user].enabled + "</td></tr>";
-      };
-      table += '</table>'
-      $("#usertable").html(table)
-    }
-  });
-}
-</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script>
+      var app = angular.module('Triage', []);
+      app.controller('Ctrl', function($scope, $http) {
+        $scope.entry = [];
+        $http.get("http://localhost:5000/users").then(function(response) {
+          $scope.users = response.data.users
+        });
+        $scope.submit = function () {
+          for(user in this.users) {
+            $http.put("http://localhost:5000/users/" + this.users[user].userid, this.users[user])
+          }
+        };
+      });
+    </script>
   </head>
   <body bgcolor="#FFFFFF">
-    <div id="usertable"></div>
+    <div ng-app="Triage" ng-controller="Ctrl">
+      <div ng-form name="users">
+        <table align="left" border="1px solid #000" class="form table">
+          <th><font size="5">Name</font></th>
+          <th>Order</th>
+          <th>Enabled</th>
+          <th>Triage Today?</th>
+          <tbody class="users">
+            <tr ng-repeat="user in users" align="center">
+              <td><font size="5">{{user.name}}</font></td>
+              <td><input type="text" ng-model="user.ord"/></td>
+              <td><input type="checkbox" ng-model="user.enabled" ng-true-value=1 ng-false-value=0></td>
+              <td ng-if="user.triage == 1">YES</td>
+              <td ng-if="user.triage != 1">NO</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button ng-click="submit()">Save</button>
+    </div>
   </body>
 </html>
