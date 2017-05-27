@@ -79,7 +79,16 @@ class Users(Resource):
         cursor = conn.cursor()
         cursor.execute(f'INSERT INTO users (name, ord) VALUES ("{name}", {ord_});')
         conn.commit()
-        return assemble(cursor.execute(f'SELECT * FROM users WHERE name="{name}";').fetchone())
+        ret = jsonify(assemble(cursor.execute(f'SELECT * FROM users WHERE name="{name}";').fetchone()))
+        ret.headers['Access-Control-Allow-Origin'] = '*'
+        return ret
+
+    def options(self):
+        ret = Response("")
+        ret.headers['Access-Control-Allow-Origin'] = '*'
+        ret.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
+        ret.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return ret
 
 
 class Triage(Resource):

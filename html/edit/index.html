@@ -6,7 +6,6 @@
     <script>
       var app = angular.module('Triage', []);
       app.controller('Ctrl', function($scope, $http) {
-        $scope.entry = [];
         function getusers() {
           $http.get("http://localhost:5000/users").then(function(response) {
             $scope.users = response.data.users
@@ -14,9 +13,12 @@
         };
         $scope.submit = function () {
           for(user in this.users) {
-            $http.put("http://localhost:5000/users/" + this.users[user].userid, this.users[user]).then(getusers())
+            $http.put("http://localhost:5000/users/" + this.users[user].userid, this.users[user]).success(getusers)
           }
         };
+        $scope.newUser = function() {
+          $http.post("http://localhost:5000/users" , {'name': this.newuser.name, 'ord': this.newuser.order}).success(getusers)
+        }
         getusers();
       });
     </script>
@@ -46,6 +48,9 @@
         <button ng-click="submit()">Save</button>
       </div>
       <div ng-form name="newuser">
+        <label>Name</label><input type="text" ng-model="newuser.name" placeholder="Enter Name" required/><br>
+        <label>Order</label><input type="text" ng-model="newuser.order" placeholder="Enter Order" required/><br>
+        <button ng-click="newUser()">Save</button>
       </div>
     </div>
   </body>
