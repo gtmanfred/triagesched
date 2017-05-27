@@ -1,7 +1,5 @@
 from flask import Flask, jsonify, request, url_for
 from flask_restful import Resource, Api
-from json import dumps
-import requests
 from sqlite3 import connect
 
 conn = connect('users.db')
@@ -22,7 +20,7 @@ class User(Resource):
         user = cursor.fetchone()
         if not user:
             return {'Error': f'Unable to find user: {userid}'}, 404
-        return jsonify(cursor.fetchone())
+        return jsonify(assemble(cursor.fetchone()))
 
     def put(self, userid):
         cursor = conn.cursor()
@@ -98,11 +96,13 @@ class Triage(Resource):
                 nextuser = False
                 ret = {'nexttriage': user['name']}
                 break
-        print(nextuser)
         if nextuser is True:
-            cursor.execute(f'UPDATE users SET triage=1 WHERE userid={users[0]["userid"]}')
-            conn.commit()
-            ret = {'nexttriage': users[0]['name']}
+            for user in users:
+                if user['enabled'] == 1:
+                    cursor.execute(f'UPDATE users SET triage=1 WHERE userid={user["userid"]}')
+                    conn.commit()
+                    ret = {'nexttriage': user['name']}
+                    break
         return jsonify(ret)
 
 
@@ -120,4 +120,5 @@ if __name__ == '__main__':
          'triage BOOLEAN NOT NULL DEFAULT 0, '
          'enabled BOOLEAN NOT NULL DEFAULT 1);'
      ))
+     conn.commit()
      app.run()
