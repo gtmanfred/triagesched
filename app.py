@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, url_for, Response
 from flask_restful import Resource, Api
 from sqlite3 import connect
 
-conn = connect('users.db')
+conn = connect('/usr/share/nginx/html/triagesched/users.db')
 cols = ('userid', 'name', 'ord', 'triage', 'enabled')
 
 app = Flask(__name__)
