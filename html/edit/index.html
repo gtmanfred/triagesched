@@ -7,17 +7,17 @@
       var app = angular.module('Triage', []);
       app.controller('Ctrl', function($scope, $http) {
         function getusers() {
-          $http.get("http://localhost:5000/api/v1/users").then(function(response) {
+          $http.get("http://triage.gtmanfred.com/api/v1/users").then(function(response) {
             $scope.users = response.data.users
           });
         };
         $scope.submit = function () {
           for(user in this.users) {
-            $http.put("http://localhost:5000/api/v1/users/" + this.users[user].userid, this.users[user]).success(getusers)
+            $http.put("http://triage.gtmanfred.com/api/v1/users/" + this.users[user].userid, this.users[user]).success(getusers)
           }
         };
         $scope.newUser = function() {
-          $http.post("http://localhost:5000/api/v1/users" , {'name': this.newuser.name, 'ord': this.newuser.order}).success(getusers)
+          $http.post("http://triage.gtmanfred.com/api/v1/users" , {'name': this.newuser.name, 'ord': this.newuser.order}).success(getusers)
         }
         getusers();
       });
