@@ -1,0 +1,27 @@
+
+<html>
+  <head>
+    <title>Who is doing triage today?</title>
+    <script src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+<script>
+window.onload = function() {
+  $.ajax({
+    url: 'http://localhost:5000/users',
+    async: true,
+    dataType: 'json',
+    success: function (json) {
+      var table = "<table>"
+      for(user in json.users) {
+        table += "<tr><td>" + json.users[user].name + "</td><td>" + json.users[user].enabled + "</td></tr>";
+      };
+      table += '</table>'
+      $("#usertable").html(table)
+    }
+  });
+}
+</script>
+  </head>
+  <body bgcolor="#FFFFFF">
+    <div id="usertable"></div>
+  </body>
+</html>

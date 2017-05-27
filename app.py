@@ -6,7 +6,7 @@ conn = connect('users.db')
 cols = ('userid', 'name', 'ord', 'triage', 'enabled')
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+#app.config['DEBUG'] = True
 api = Api(app)
 
 
@@ -61,7 +61,9 @@ class Users(Resource):
             ret.setdefault('users', []).append(assemble(user))
         if not ret:
             return {'Error': f'No users defined'}, 404
-        return jsonify(ret)
+        ret = jsonify(ret)
+        ret.headers['Access-Control-Allow-Origin'] = '*'
+        return ret
 
     def post(self):
         name, ord_ = request.json['name'], request.json['ord']
