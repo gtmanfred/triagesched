@@ -129,9 +129,10 @@ class Triage(Resource):
         return jsonify(ret)
 
 
-api.add_resource(User, '/users/<string:userid>')
-api.add_resource(Users, '/users')
-api.add_resource(Triage, '/triage')
+prefix = '/api/v1'
+api.add_resource(User, f'{prefix}/users/<string:userid>')
+api.add_resource(Users, f'{prefix}/users')
+api.add_resource(Triage, f'{prefix}/triage')
 
 def make_app():
     c = conn.cursor()
