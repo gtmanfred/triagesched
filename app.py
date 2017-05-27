@@ -74,7 +74,10 @@ class Triage(Resource):
     def get(self):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE triage=1')
-        return jsonify({'triage': assemble(cursor.fetchone())['name']})
+        print('HERE')
+        ret = jsonify({'triage': assemble(cursor.fetchone())['name']})
+        ret.headers['Access-Control-Allow-Origin'] = '*'
+        return ret
 
     def put(self):
         cursor = conn.cursor()
