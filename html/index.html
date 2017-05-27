@@ -6,7 +6,7 @@
     <script>
       var app = angular.module('Triage', []);
       app.controller('Ctrl', function($scope, $http) {
-        $http.get("http://localhost:5000/triage").then(function(response) {
+        $http.get("http://localhost:5000/api/v1/triage").then(function(response) {
           $scope.triage = response.data.triage
         })
       });

@@ -6,7 +6,7 @@ conn = connect('users.db')
 cols = ('userid', 'name', 'ord', 'triage', 'enabled')
 
 app = Flask(__name__)
-#app.config['DEBUG'] = True
+app.config["APPLICATION_ROOT"] = "/api/v1"
 api = Api(app)
 
 
@@ -133,15 +133,18 @@ api.add_resource(User, '/users/<string:userid>')
 api.add_resource(Users, '/users')
 api.add_resource(Triage, '/triage')
 
+def make_app():
+    c = conn.cursor()
+    c.execute((
+        'CREATE TABLE IF NOT EXISTS users ('
+        'userid INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'name TEXT NOT NULL, '
+        'ord INTEGER NOT NULL, '
+        'triage BOOLEAN NOT NULL DEFAULT 0, '
+        'enabled BOOLEAN NOT NULL DEFAULT 1);'
+    ))
+    conn.commit()
+    return app
+
 if __name__ == '__main__':
-     c = conn.cursor()
-     c.execute((
-         'CREATE TABLE IF NOT EXISTS users ('
-         'userid INTEGER PRIMARY KEY AUTOINCREMENT, '
-         'name TEXT NOT NULL, '
-         'ord INTEGER NOT NULL, '
-         'triage BOOLEAN NOT NULL DEFAULT 0, '
-         'enabled BOOLEAN NOT NULL DEFAULT 1);'
-     ))
-     conn.commit()
-     app.run()
+    make_app().run()
