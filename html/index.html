@@ -8,6 +8,7 @@
       app.controller('Ctrl', function($scope, $http) {
         $http.get("http://triage.gtmanfred.com/api/v1/triage").then(function(response) {
           $scope.triage = response.data.triage
+          $scope.date = response.data.date
         })
       });
     </script>

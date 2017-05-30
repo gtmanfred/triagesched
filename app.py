@@ -101,7 +101,7 @@ class Triage(Resource):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE triage=1')
         user = Columns(*cursor.fetchone())
-        date = parser.parse(user.date).strftime('%A %B %w %Y')
+        date = parser.parse(user.date).strftime('%A, %B %w, %Y')
         ret = jsonify({'triage': user.name, 'date': date})
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
