@@ -1,9 +1,13 @@
 from flask import Flask, jsonify, request, url_for, Response
 from flask_restful import Resource, Api
+import os
 from sqlite3 import connect
 
-conn = connect('/usr/share/nginx/html/triagesched/users.db')
-cols = ('userid', 'name', 'ord', 'triage', 'enabled')
+if bool(os.environ.get('DEBUG')) is True:
+    conn = connect('users.db')
+else:
+    conn = connect('/usr/share/nginx/html/triagesched/users.db')
+cols = ('userid', 'name', 'ord', 'triage', 'enabled', 'date')
 
 app = Flask(__name__)
 app.config["APPLICATION_ROOT"] = "/api/v1"
@@ -142,7 +146,8 @@ def make_app():
         'name TEXT NOT NULL, '
         'ord INTEGER NOT NULL, '
         'triage BOOLEAN NOT NULL DEFAULT 0, '
-        'enabled BOOLEAN NOT NULL DEFAULT 1);'
+        'enabled BOOLEAN NOT NULL DEFAULT 1, '
+        'date datetime default current_timestamp);'
     ))
     conn.commit()
     return app
