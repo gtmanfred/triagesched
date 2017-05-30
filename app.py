@@ -1,3 +1,4 @@
+from collections import namedtuple
 from flask import Flask, jsonify, request, url_for, Response
 from flask_restful import Resource, Api
 import os
@@ -7,15 +8,11 @@ if bool(os.environ.get('DEBUG')) is True:
     conn = connect('users.db')
 else:
     conn = connect('/usr/share/nginx/html/triagesched/users.db')
-cols = ('userid', 'name', 'ord', 'triage', 'enabled', 'date')
+Columns = namedtuple('Columns', 'userid name ord triage enabled date')
 
 app = Flask(__name__)
 app.config["APPLICATION_ROOT"] = "/api/v1"
 api = Api(app)
-
-
-def assemble(user):
-    return dict(zip(cols, user))
 
 
 class User(Resource):
@@ -25,23 +22,25 @@ class User(Resource):
         user = cursor.fetchone()
         if not user:
             return {'Error': f'Unable to find user: {userid}'}, 404
-        return jsonify(assemble(cursor.fetchone()))
+        return jsonify(Columns(*user)._asdict())
 
     def put(self, userid):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE userid="{userid}"')
-        user = assemble(cursor.fetchone())
+        user = cursor.fetchone()
         if not user:
             return {'Error': f'Unable to find user: {userid}'}, 404
-        user.update(request.json)
-        userid = user.pop('userid')
-        for key, value in user.items():
+        user = Columns(*user)
+        user._replace(**request.json)
+        userid = user.userid
+        for key, value in user._asdict().items():
+            if key is 'userid':
+                continue
             cursor.execute(f'UPDATE users SET {key}="{value}" where userid="{userid}";')
-        ret = jsonify(assemble(cursor.execute(f'SELECT * FROM users WHERE userid="{userid}";').fetchone()))
+        ret = jsonify(Columns(*cursor.execute(f'SELECT * FROM users WHERE userid="{userid}";').fetchone()))
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
         
-
     def delete(self, userid):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE userid="{userid}"')
@@ -71,7 +70,7 @@ class Users(Resource):
             enabled = 'WHERE enabled=1 '
         search = f'SELECT * FROM users {enabled}ORDER BY ord;'
         for user in cursor.execute(search):
-            ret.setdefault('users', []).append(assemble(user))
+            ret.setdefault('users', []).append(Columns(*user)._asdict())
         if not ret:
             return {'Error': f'No users defined'}, 404
         ret = jsonify(ret)
@@ -83,7 +82,7 @@ class Users(Resource):
         cursor = conn.cursor()
         cursor.execute(f'INSERT INTO users (name, ord) VALUES ("{name}", {ord_});')
         conn.commit()
-        ret = jsonify(assemble(cursor.execute(f'SELECT * FROM users WHERE name="{name}";').fetchone()))
+        ret = jsonify(Columns(*cursor.execute(f'SELECT * FROM users WHERE name="{name}";').fetchone())._asdict())
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
 
@@ -99,7 +98,7 @@ class Triage(Resource):
     def get(self):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE triage=1')
-        ret = jsonify({'triage': assemble(cursor.fetchone())['name']})
+        ret = jsonify({'triage': Columns(*cursor.fetchone()).name})
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
 
@@ -108,7 +107,7 @@ class Triage(Resource):
         users = []
         search = f'SELECT * FROM users ORDER BY ord;'
         for user in cursor.execute(search):
-            users.append(assemble(user))
+            users.append(Columns(*user)._asdict())
         nextuser = False
         for user in users:
             if user['triage'] == 1:
