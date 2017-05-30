@@ -1,4 +1,6 @@
 from collections import namedtuple
+from datetime import datetime
+from dateutil import parser
 from flask import Flask, jsonify, request, url_for, Response
 from flask_restful import Resource, Api
 import os
@@ -98,7 +100,9 @@ class Triage(Resource):
     def get(self):
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM users WHERE triage=1')
-        ret = jsonify({'triage': Columns(*cursor.fetchone()).name})
+        user = Columns(*cursor.fetchone())
+        date = parser.parse(user.date).strftime('%A %B %w %Y')
+        ret = jsonify({'triage': user.name, 'date': date})
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
 
@@ -107,27 +111,27 @@ class Triage(Resource):
         users = []
         search = f'SELECT * FROM users ORDER BY ord;'
         for user in cursor.execute(search):
-            users.append(Columns(*user)._asdict())
+            users.append(Columns(*user))
         nextuser = False
         for user in users:
-            if user['triage'] == 1:
-                cursor.execute(f'UPDATE users SET triage=0 WHERE userid={user["userid"]}')
+            if user.triage == 1:
+                cursor.execute(f'UPDATE users SET triage=0 WHERE userid={user.userid}')
                 conn.commit()
                 nextuser = True
-            elif user['enabled'] == 0:
+            elif user.enabled == 0:
                 continue
             elif nextuser is True:
-                cursor.execute(f'UPDATE users SET triage=1 WHERE userid={user["userid"]}')
+                cursor.execute(f'UPDATE users SET triage=1, date="{datetime.now()}" WHERE userid={user.userid}')
                 conn.commit()
                 nextuser = False
-                ret = {'nexttriage': user['name']}
+                ret = {'nexttriage': user.name, 'date': user.date}
                 break
         if nextuser is True:
             for user in users:
-                if user['enabled'] == 1:
-                    cursor.execute(f'UPDATE users SET triage=1 WHERE userid={user["userid"]}')
+                if user.enabled == 1:
+                    cursor.execute(f'UPDATE users SET triage=1, date="{datetime.now()}" WHERE userid={user.userid}')
                     conn.commit()
-                    ret = {'nexttriage': user['name']}
+                    ret = {'nexttriage': user.name, 'date': user.date}
                     break
         return jsonify(ret)
 
