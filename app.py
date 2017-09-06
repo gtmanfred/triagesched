@@ -156,19 +156,18 @@ api.add_resource(Users, f'{prefix}/users')
 api.add_resource(Triage, f'{prefix}/triage')
 
 def make_app():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute((
-        'CREATE TABLE IF NOT EXISTS users ('
-        'userid INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'name TEXT NOT NULL, '
-        'ord INTEGER NOT NULL, '
-        'triage BOOLEAN NOT NULL DEFAULT 0, '
-        'enabled BOOLEAN NOT NULL DEFAULT 1, '
-        'date datetime default current_timestamp);'
-    ))
-    conn.commit()
-    conn.close()
+    with app.app_context():
+        c = _get_db().cursor()
+        c.execute((
+            'CREATE TABLE IF NOT EXISTS users ('
+            'userid INTEGER PRIMARY KEY AUTOINCREMENT, '
+            'name TEXT NOT NULL, '
+            'ord INTEGER NOT NULL, '
+            'triage BOOLEAN NOT NULL DEFAULT 0, '
+            'enabled BOOLEAN NOT NULL DEFAULT 1, '
+            'date datetime default current_timestamp);'
+        ))
+        _get_db().commit()
     return app
 
 if __name__ == '__main__':
