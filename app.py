@@ -23,6 +23,13 @@ def _get_db():
     return db
 
 
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
 class User(Resource):
     def get(self, userid):
         cursor = _get_db().cursor()
