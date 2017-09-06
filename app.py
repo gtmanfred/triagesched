@@ -39,12 +39,13 @@ class User(Resource):
         if not user:
             return {'Error': f'Unable to find user: {userid}'}, 404
         user = Columns(*user)
-        user._replace(**request.json)
+        user = user._replace(**request.json)
         userid = user.userid
         for key, value in user._asdict().items():
             if key is 'userid':
                 continue
             cursor.execute(f'UPDATE users SET {key}="{value}" where userid="{userid}";')
+        _get_db().commit()
         ret = jsonify(Columns(*cursor.execute(f'SELECT * FROM users WHERE userid="{userid}";').fetchone()))
         ret.headers['Access-Control-Allow-Origin'] = '*'
         return ret
